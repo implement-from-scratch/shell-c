@@ -1,0 +1,40 @@
+name: C++ CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint-and-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for C++ source files
+        id: check_files
+        run: |
+          if find src/ -type f \( -name "*.cpp" -o -name "*.hpp" -o -name "*.cc" -o -name "*.cxx" \) 2>/dev/null | grep -q .; then
+            echo "has_files=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_files=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run clang-format check
+        if: steps.check_files.outputs.has_files == 'true'
+        uses: jidicula/clang-format-action@v4.11.0
+        with:
+          clang-format-version: '15'
+          check-path: 'src'
+
+      - name: Install cppcheck
+        run: sudo apt-get update && sudo apt-get install -y cppcheck
+
+      - name: Run cppcheck
+        run: |
+          if find src/ include/ -type f \( -name "*.cpp" -o -name "*.hpp" -o -name "*.cc" -o -name "*.cxx" \) 2>/dev/null | grep -q .; then
+            cppcheck --enable=all --error-exitcode=1 --suppress=missingIncludeSystem src/ include/
+          else
+            echo "No C++ source files found, skipping cppcheck"
+          fi

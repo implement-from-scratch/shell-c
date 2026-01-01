@@ -1,0 +1,23 @@
+name: Rust CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  clippy-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - name: Run Clippy
+        run: |
+          if [ -f "Cargo.toml" ]; then
+            cargo clippy -- -D warnings
+          else
+            echo "No Cargo.toml found, skipping clippy"
+          fi
