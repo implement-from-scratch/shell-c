@@ -28,19 +28,19 @@
  * @brief Command structure representing a single command in a pipeline
  */
 typedef struct {
-    char **argv;              /**< Argument vector (NULL-terminated) */
-    char *input_file;         /**< Input redirection file (NULL if none) */
-    char *output_file;        /**< Output redirection file (NULL if none) */
-    bool append_output;       /**< Append mode for output redirection */
-    bool background;          /**< Background execution flag */
+  char **argv;        /**< Argument vector (NULL-terminated) */
+  char *input_file;   /**< Input redirection file (NULL if none) */
+  char *output_file;  /**< Output redirection file (NULL if none) */
+  bool append_output; /**< Append mode for output redirection */
+  bool background;    /**< Background execution flag */
 } command_t;
 
 /**
  * @brief Pipeline structure containing multiple commands
  */
 typedef struct {
-    command_t *commands;      /**< Array of commands */
-    size_t num_commands;      /**< Number of commands in pipeline */
+  command_t *commands; /**< Array of commands */
+  size_t num_commands; /**< Number of commands in pipeline */
 } pipeline_t;
 
 /**
