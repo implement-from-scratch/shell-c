@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c11 -I../include
+CFLAGS = -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200809L -I../include
 LDFLAGS = 
 
 # Source files

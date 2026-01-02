@@ -1,4 +1,4 @@
-name: CI
+name: Test CI
 
 on:
   push:
@@ -7,14 +7,14 @@ on:
       - 'src/**/*.c'
       - 'include/**/*.h'
       - 'tests/**/*.c'
-      - '.github/workflows/ci.yml'
+      - '.github/workflows/test-ci.yml'
   pull_request:
     branches: [main]
     paths:
       - 'src/**/*.c'
       - 'include/**/*.h'
       - 'tests/**/*.c'
-      - '.github/workflows/ci.yml'
+      - '.github/workflows/test-ci.yml'
 
 jobs:
   format-check:
@@ -23,10 +23,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Check code formatting
-        uses: jidicula/clang-format-action@v15
-        with:
-          clang-format-version: '15'
-          check-path: 'src include'
+        run: |
+          docker run --rm -v "$(pwd):/workspace" -w /workspace \
+            ghcr.io/jidicula/clang-format:15 \
+            --dry-run --Werror src/shell.c src/parser.c include/shell.h
+
+  cppcheck:
+    name: Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install cppcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cppcheck
+      - name: Run cppcheck
+        run: |
+          if find src/ include/ -type f \( -name "*.c" -o -name "*.h" \) 2>/dev/null | grep -q .; then
+            cppcheck --enable=all --suppress=missingIncludeSystem \
+              -I include --error-exitcode=1 src/ include/
+          fi
 
   build:
     name: Build
@@ -39,7 +55,7 @@ jobs:
           sudo apt-get install -y build-essential
       - name: Build shell
         run: |
-          gcc -Wall -Wextra -std=c11 -Iinclude src/shell.c src/parser.c -o shell
+          gcc -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200809L -Iinclude src/shell.c src/parser.c -o shell
       - name: Build tests
         run: |
           cd tests && make

@@ -3,6 +3,8 @@
  * @brief Command line parser implementation
  */
 
+#define _POSIX_C_SOURCE 200809L
+
 #include "shell.h"
 #include <ctype.h>
 #include <stdlib.h>
@@ -31,7 +33,7 @@ static int tokenize(const char *line, char **tokens, int max_tokens) {
     if (*token == '\0')
       break;
 
-    char *start = token;
+    const char *start = token;
     bool in_quotes = false;
     char quote_char = '\0';
 

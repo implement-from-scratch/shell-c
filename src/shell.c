@@ -3,6 +3,8 @@
  * @brief Main shell implementation with process control and I/O redirection
  */
 
+#define _POSIX_C_SOURCE 200809L
+
 #include "shell.h"
 #include <errno.h>
 #include <fcntl.h>

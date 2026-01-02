@@ -2,9 +2,17 @@ name: C CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
+    paths:
+      - 'src/**/*.c'
+      - 'include/**/*.h'
+      - '.github/workflows/c-ci.yml'
   pull_request:
-    branches: [ main ]
+    branches: [main]
+    paths:
+      - 'src/**/*.c'
+      - 'include/**/*.h'
+      - '.github/workflows/c-ci.yml'
 
 jobs:
   lint-and-check:
@@ -15,7 +23,7 @@ jobs:
       - name: Check for C source files
         id: check_files
         run: |
-          if find src/ -type f \( -name "*.c" -o -name "*.h" \) 2>/dev/null | grep -q .; then
+          if find src/ include/ -type f \( -name "*.c" -o -name "*.h" \) 2>/dev/null | grep -q .; then
             echo "has_files=true" >> $GITHUB_OUTPUT
           else
             echo "has_files=false" >> $GITHUB_OUTPUT
@@ -23,18 +31,23 @@ jobs:
 
       - name: Run clang-format check
         if: steps.check_files.outputs.has_files == 'true'
-        uses: jidicula/clang-format-action@v4.11.0
-        with:
-          clang-format-version: '15'
-          check-path: 'src'
+        run: |
+          docker run --rm -v "$(pwd):/workspace" -w /workspace \
+            ghcr.io/jidicula/clang-format:15 \
+            --dry-run --Werror src/shell.c src/parser.c include/shell.h
 
       - name: Install cppcheck
         run: sudo apt-get update && sudo apt-get install -y cppcheck
 
       - name: Run cppcheck
+        if: steps.check_files.outputs.has_files == 'true'
         run: |
-          if find src/ include/ -type f \( -name "*.c" -o -name "*.h" \) 2>/dev/null | grep -q .; then
-            cppcheck --enable=all --error-exitcode=1 --suppress=missingIncludeSystem --language=c src/ include/
-          else
-            echo "No C source files found, skipping cppcheck"
-          fi
+          cppcheck --enable=all --error-exitcode=1 \
+            --suppress=missingIncludeSystem \
+            -I include --language=c src/ include/
+
+      - name: Build
+        if: steps.check_files.outputs.has_files == 'true'
+        run: |
+          gcc -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200809L \
+            -Iinclude src/shell.c src/parser.c -o shell

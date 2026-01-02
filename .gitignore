@@ -1,0 +1,6 @@
+shell
+*.o
+tests/test_*
+!tests/*.c
+!tests/Makefile
+.clang-format
