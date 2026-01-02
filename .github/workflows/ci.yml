@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**/*.c'
+      - 'include/**/*.h'
+      - 'tests/**/*.c'
+      - '.github/workflows/ci.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**/*.c'
+      - 'include/**/*.h'
+      - 'tests/**/*.c'
+      - '.github/workflows/ci.yml'
+
+jobs:
+  format-check:
+    name: Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check code formatting
+        uses: jidicula/clang-format-action@v15
+        with:
+          clang-format-version: '15'
+          check-path: 'src include'
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+      - name: Build shell
+        run: |
+          gcc -Wall -Wextra -std=c11 -Iinclude src/shell.c src/parser.c -o shell
+      - name: Build tests
+        run: |
+          cd tests && make
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+      - name: Build and run tests
+        run: |
+          cd tests && make test

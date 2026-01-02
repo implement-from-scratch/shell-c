@@ -185,7 +185,7 @@ int execute_pipeline(pipeline_t *pipeline) {
 
   size_t num_cmds = pipeline->num_commands;
   pid_t *pids = calloc(num_cmds, sizeof(pid_t));
-  int (*pipe_fds)[2] = calloc(num_cmds - 1, sizeof(int[2]));
+  int(*pipe_fds)[2] = calloc(num_cmds - 1, sizeof(int[2]));
 
   if (!pids || (!pipe_fds && num_cmds > 1)) {
     free(pids);
